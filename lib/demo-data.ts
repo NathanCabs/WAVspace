@@ -1,0 +1,243 @@
+import { siteConfig } from "@/lib/config/site-config";
+import type {
+  CafeSettings,
+  ConsumableOption,
+  EventDetail,
+  EventListing,
+  FreebieKit,
+} from "@/lib/types";
+
+export const DEMO_SETTINGS: CafeSettings = {
+  id: "00000000-0000-0000-0000-000000000001",
+  cafe_name: siteConfig.cafe.name,
+  tagline: siteConfig.cafe.tagline,
+  about: siteConfig.cafe.description,
+  logo_url: siteConfig.cafe.logoUrl,
+  gcash_qr_url: siteConfig.payments.gcashQr,
+  maya_qr_url: siteConfig.payments.mayaQr,
+  bank_name: siteConfig.payments.bankName,
+  bank_account_name: siteConfig.payments.bankAccountName,
+  bank_account_number: siteConfig.payments.bankAccountNumber,
+  ewallet_name: siteConfig.payments.ewalletName,
+  ewallet_number: siteConfig.payments.ewalletNumber,
+  updated_at: new Date().toISOString(),
+};
+
+const CSE_CONSUMABLES: ConsumableOption[] = [
+  {
+    id: "b1111111-1111-4111-8111-000000000001",
+    event_id: "a1111111-1111-4111-8111-111111111111",
+    name: "Iced Latte",
+    category: "drink",
+    extra_price: 0,
+    sort_order: 1,
+    is_active: true,
+  },
+  {
+    id: "b1111111-1111-4111-8111-000000000002",
+    event_id: "a1111111-1111-4111-8111-111111111111",
+    name: "Peach Tea",
+    category: "drink",
+    extra_price: 0,
+    sort_order: 2,
+    is_active: true,
+  },
+  {
+    id: "b1111111-1111-4111-8111-000000000003",
+    event_id: "a1111111-1111-4111-8111-111111111111",
+    name: "Americano",
+    category: "drink",
+    extra_price: 0,
+    sort_order: 3,
+    is_active: true,
+  },
+];
+
+const CSE_KITS: FreebieKit[] = [
+  {
+    id: "c1111111-1111-4111-8111-000000000001",
+    event_id: "a1111111-1111-4111-8111-111111111111",
+    name: "Standard Kit",
+    description: "Entry + 1 drink + core merch.",
+    price: 350,
+    items: ["Cupholder", "Sticker Pack"],
+    is_default: true,
+    sort_order: 1,
+  },
+  {
+    id: "c1111111-1111-4111-8111-000000000002",
+    event_id: "a1111111-1111-4111-8111-111111111111",
+    name: "Photocard Kit",
+    description: "Adds a randomized photocard set for traders.",
+    price: 550,
+    items: ["Cupholder", "Photocard Set", "Sticker Pack"],
+    is_default: false,
+    sort_order: 2,
+  },
+  {
+    id: "c1111111-1111-4111-8111-000000000003",
+    event_id: "a1111111-1111-4111-8111-111111111111",
+    name: "Full Wave Kit",
+    description: "The complete table drop, including a mini poster.",
+    price: 850,
+    items: ["Cupholder", "Photocard Set", "Poster", "Sticker Pack"],
+    is_default: false,
+    sort_order: 3,
+  },
+];
+
+export const DEMO_EVENTS: EventListing[] = [
+  {
+    id: "a1111111-1111-4111-8111-111111111111",
+    title: "Kkampakz Birthday CSE",
+    description:
+      "A fan-hosted birthday cupsleeve for Nakyoung and Sohyun, with Polaroid walls, trade tables, and a WAV Cafe drink included in every kit.",
+    event_date: "2026-10-13",
+    start_time: "13:00:00",
+    end_time: "18:00:00",
+    banner_url: "/events/kkampakz.jpg",
+    max_slots: 40,
+    ticket_price: 350,
+    is_cafe_hosted: false,
+    category: "cse",
+    is_published: true,
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-01T00:00:00.000Z",
+    remaining_slots: 40,
+  },
+  {
+    id: "a2222222-2222-4222-8222-222222222222",
+    title: "Late Light Acoustic Night",
+    description:
+      "A cafe-hosted evening of original songs, warm lamps, and slow bars.",
+    event_date: "2026-09-13",
+    start_time: "19:00:00",
+    end_time: "22:00:00",
+    banner_url:
+      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1600&q=80",
+    max_slots: 28,
+    ticket_price: 200,
+    is_cafe_hosted: true,
+    category: "acoustic",
+    is_published: true,
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-01T00:00:00.000Z",
+    remaining_slots: 18,
+  },
+  {
+    id: "a3333333-3333-4333-8333-333333333333",
+    title: "Latte Art Lab",
+    description:
+      "A hands-on workshop with WAV Cafe baristas. Pull, pour, and take home a tasting flight.",
+    event_date: "2026-10-04",
+    start_time: "10:00:00",
+    end_time: "13:00:00",
+    banner_url:
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80",
+    max_slots: 16,
+    ticket_price: 500,
+    is_cafe_hosted: true,
+    category: "workshop",
+    is_published: true,
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-01T00:00:00.000Z",
+    remaining_slots: 9,
+  },
+];
+
+export const DEMO_EVENT_DETAILS: EventDetail[] = [
+  {
+    ...DEMO_EVENTS[0],
+    consumable_options: CSE_CONSUMABLES,
+    freebie_kits: CSE_KITS,
+  },
+  {
+    ...DEMO_EVENTS[1],
+    consumable_options: [
+      {
+        id: "b2222222-2222-4222-8222-000000000001",
+        event_id: DEMO_EVENTS[1].id,
+        name: "Hot Chocolate",
+        category: "drink",
+        extra_price: 0,
+        sort_order: 1,
+        is_active: true,
+      },
+      {
+        id: "b2222222-2222-4222-8222-000000000002",
+        event_id: DEMO_EVENTS[1].id,
+        name: "Oat Flat White",
+        category: "drink",
+        extra_price: 0,
+        sort_order: 2,
+        is_active: true,
+      },
+      {
+        id: "b2222222-2222-4222-8222-000000000003",
+        event_id: DEMO_EVENTS[1].id,
+        name: "House Pour-over",
+        category: "drink",
+        extra_price: 40,
+        sort_order: 3,
+        is_active: true,
+      },
+    ],
+    freebie_kits: [
+      {
+        id: "c2222222-2222-4222-8222-000000000001",
+        event_id: DEMO_EVENTS[1].id,
+        name: "Standing Ticket",
+        description: "Floor space along the counter with one drink.",
+        price: 200,
+        items: ["Setlist postcard"],
+        is_default: true,
+        sort_order: 1,
+      },
+      {
+        id: "c2222222-2222-4222-8222-000000000002",
+        event_id: DEMO_EVENTS[1].id,
+        name: "Reserved Table",
+        description: "Shared table seating closest to the performers.",
+        price: 350,
+        items: ["Setlist postcard", "Table candle"],
+        is_default: false,
+        sort_order: 2,
+      },
+    ],
+  },
+  {
+    ...DEMO_EVENTS[2],
+    consumable_options: [
+      {
+        id: "b3333333-3333-4333-8333-000000000001",
+        event_id: DEMO_EVENTS[2].id,
+        name: "Tasting Flight",
+        category: "drink",
+        extra_price: 0,
+        sort_order: 1,
+        is_active: true,
+      },
+      {
+        id: "b3333333-3333-4333-8333-000000000002",
+        event_id: DEMO_EVENTS[2].id,
+        name: "Iced Spanish Latte",
+        category: "drink",
+        extra_price: 0,
+        sort_order: 2,
+        is_active: true,
+      },
+    ],
+    freebie_kits: [
+      {
+        id: "c3333333-3333-4333-8333-000000000001",
+        event_id: DEMO_EVENTS[2].id,
+        name: "Lab Seat",
+        description: "Includes materials, tasting flight, and practice cups.",
+        price: 500,
+        items: ["Practice cups", "Tasting card", "Recipe sheet"],
+        is_default: true,
+        sort_order: 1,
+      },
+    ],
+  },
+];

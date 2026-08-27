@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WAVspace
 
-## Getting Started
+**WAVspace** (wordmark) / **WAV Space** (full title) is a cafe event reservation and venue booking template. It is built for local cafes that host cupsleeve events, acoustic nights, and workshops — with guest checkout, freebie kit selection, and manual receipt verification.
 
-First, run the development server:
+Demo tenant: **WAV Cafe**. Rebrand by editing [`lib/config/site-config.ts`](lib/config/site-config.ts).
+
+## How to Rebrand This Template
+
+Use this repo as a white-label starting point for another cafe:
+
+1. **Clone** this repository.
+2. **Edit** [`lib/config/site-config.ts`](lib/config/site-config.ts). That file is the only place you need to change for:
+   - Cafe name, tagline, and description
+   - Product wordmark (default `WAV` + `space`)
+   - Accent / theme colors
+   - GCash / Maya QR paths, bank, and e-wallet details
+   - Contact info and social links (empty social URLs are hidden)
+3. **Replace payment QR images** in [`public/payments/`](public/payments/) (`gcash.svg`, `maya.svg`), or point `payments.gcashQr` / `payments.mayaQr` at hosted URLs.
+4. **Copy env vars:** `cp .env.example .env.local`. Set `RESEND_FROM_EMAIL` to the new cafe name (for example `"Your Cafe <onboarding@resend.dev>"`).
+5. **Run the SQL migration** (schema only) in the Supabase SQL editor: [`supabase/migrations/20240827000001_init.sql`](supabase/migrations/20240827000001_init.sql). [`supabase/seed.sql`](supabase/seed.sql) is optional WAV Cafe demo events — skip it for a live cafe, or update the `cafe_settings` row so live payment fields match your config.
+6. **Create the admin user** (Authentication → disable public sign-ups, then create one email/password user). Deploy to Vercel with the same env vars and your production `NEXT_PUBLIC_SITE_URL`.
+
+Chrome (navbar, footer, metadata, homepage, emails) always reads `site-config.ts`. Registration QR / bank details prefer the `cafe_settings` row in Supabase when one exists, and fall back to the config when it does not.
+
+## Stack
+
+- Next.js (App Router) + TypeScript
+- Tailwind CSS + shadcn/ui + Lucide + Motion
+- Supabase (PostgreSQL, Auth, Storage, RLS)
+- Resend for confirmation emails
+- Vercel
+
+Attendees never create accounts. They register with name + email, receive a `WAV-XXXX` code, and look up status at `/lookup`. Only cafe admins sign in.
+
+## Local setup
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The homepage still renders with demo events if Supabase env vars are empty. Live registration, lookup, and admin require a Supabase project.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+RESEND_API_KEY=
+RESEND_FROM_EMAIL="WAV Cafe <onboarding@resend.dev>"
+```
 
-## Learn More
+## Supabase
 
-To learn more about Next.js, take a look at the following resources:
+1. Create a project at [supabase.com](https://supabase.com).
+2. In the SQL editor, run [`supabase/migrations/20240827000001_init.sql`](supabase/migrations/20240827000001_init.sql).
+3. Optionally run [`supabase/seed.sql`](supabase/seed.sql) for WAV Cafe demo events. Skip this (or edit the `cafe_settings` row) when deploying for another cafe.
+4. Authentication → disable public sign-ups (staff-only). Create one user (email/password) for the cafe owner. A `profiles` row with `role = admin` is created automatically.
+5. Storage bucket `payment-proofs` is created by the migration (private).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Or with the CLI:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx supabase link --project-ref <ref>
+npx supabase db push
+npx supabase db query --file supabase/seed.sql
+```
+
+Regenerate types later with:
+
+```bash
+npx supabase gen types typescript --project-id <id> > lib/types.ts
+```
+
+## Resend
+
+Registration always shows the reference code on `/register/success`. When `RESEND_API_KEY` is set, attendees also get:
+
+- “We received your registration” with the code and a lookup link
+- Approve / reject notices after admin review
+- A confirmation when a venue inquiry is submitted
+
+Use `onboarding@resend.dev` until a domain is verified. Match `RESEND_FROM_EMAIL` to the cafe name in `site-config.ts`.
+
+## Admin
+
+- `/login` — cafe staff
+- `/admin` — stats
+- `/admin/registrations` — preview receipts, approve / reject (pending holds a slot)
+- `/admin/events` — event builder (consumables + freebie kits)
+- `/admin/venue-requests` — host inquiries
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push this repo and import it in Vercel.
+2. Add the same env vars (use the production site URL for `NEXT_PUBLIC_SITE_URL`).
+3. Deploy. First load of `/` works even before seed data exists.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project map
+
+```
+app/                 routes + server actions
+components/          homepage bento, wizard, admin
+lib/config/          white-label site-config.ts
+lib/                 supabase clients, types, email
+emails/              Resend React templates
+supabase/            SQL migration + seed
+```
