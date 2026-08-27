@@ -2,22 +2,22 @@
 
 **WAVspace** (wordmark) / **WAV Space** (full title) is a cafe event reservation and venue booking template. It is built for local cafes that host cupsleeve events, acoustic nights, and workshops — with guest checkout, freebie kit selection, and manual receipt verification.
 
-Demo tenant: **WAV Cafe**. Rebrand by editing [`lib/config/site-config.ts`](lib/config/site-config.ts).
+Demo tenant: **WAV Cafe**. Rebrand by editing `[lib/config/site-config.ts](lib/config/site-config.ts)`.
 
 ## How to Rebrand This Template
 
 Use this repo as a white-label starting point for another cafe:
 
 1. **Clone** this repository.
-2. **Edit** [`lib/config/site-config.ts`](lib/config/site-config.ts). That file is the only place you need to change for:
-   - Cafe name, tagline, and description
-   - Product wordmark (default `WAV` + `space`)
-   - Accent / theme colors
-   - GCash / Maya QR paths, bank, and e-wallet details
-   - Contact info and social links (empty social URLs are hidden)
-3. **Replace payment QR images** in [`public/payments/`](public/payments/) (`gcash.svg`, `maya.svg`), or point `payments.gcashQr` / `payments.mayaQr` at hosted URLs.
+2. **Edit** `[lib/config/site-config.ts](lib/config/site-config.ts)`. That file is the only place you need to change for:
+  - Cafe name, tagline, and description
+  - Product wordmark (default `WAV` + `space`)
+  - Accent / theme colors
+  - GCash / Maya QR paths, bank, and e-wallet details
+  - Contact info and social links (empty social URLs are hidden)
+3. **Replace payment QR images** in `[public/payments/](public/payments/)` (`gcash.svg`, `maya.svg`), or point `payments.gcashQr` / `payments.mayaQr` at hosted URLs.
 4. **Copy env vars:** `cp .env.example .env.local`. Set `RESEND_FROM_EMAIL` to the new cafe name (for example `"Your Cafe <onboarding@resend.dev>"`).
-5. **Run the SQL migration** (schema only) in the Supabase SQL editor: [`supabase/migrations/20240827000001_init.sql`](supabase/migrations/20240827000001_init.sql). [`supabase/seed.sql`](supabase/seed.sql) is optional WAV Cafe demo events — skip it for a live cafe, or update the `cafe_settings` row so live payment fields match your config.
+5. **Run the SQL migration** (schema only) in the Supabase SQL editor: `[supabase/migrations/20240827000001_init.sql](supabase/migrations/20240827000001_init.sql)`. `[supabase/seed.sql](supabase/seed.sql)` is optional WAV Cafe demo events — skip it for a live cafe, or update the `cafe_settings` row so live payment fields match your config.
 6. **Create the admin user** (Authentication → disable public sign-ups, then create one email/password user). Deploy to Vercel with the same env vars and your production `NEXT_PUBLIC_SITE_URL`.
 
 Chrome (navbar, footer, metadata, homepage, emails) always reads `site-config.ts`. Registration QR / bank details prefer the `cafe_settings` row in Supabase when one exists, and fall back to the config when it does not.
@@ -53,11 +53,13 @@ RESEND_API_KEY=
 RESEND_FROM_EMAIL="WAV Cafe <onboarding@resend.dev>"
 ```
 
+
+
 ## Supabase
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. In the SQL editor, run [`supabase/migrations/20240827000001_init.sql`](supabase/migrations/20240827000001_init.sql).
-3. Optionally run [`supabase/seed.sql`](supabase/seed.sql) for WAV Cafe demo events. Skip this (or edit the `cafe_settings` row) when deploying for another cafe.
+1. Create a project at [supabase.com](https://supabase.com). NbClxP7FVff1uTR8
+2. In the SQL editor, run `[supabase/migrations/20240827000001_init.sql](supabase/migrations/20240827000001_init.sql)`.
+3. Optionally run `[supabase/seed.sql](supabase/seed.sql)` for WAV Cafe demo events. Skip this (or edit the `cafe_settings` row) when deploying for another cafe.
 4. Authentication → disable public sign-ups (staff-only). Create one user (email/password) for the cafe owner. A `profiles` row with `role = admin` is created automatically.
 5. Storage bucket `payment-proofs` is created by the migration (private).
 
@@ -74,6 +76,8 @@ Regenerate types later with:
 ```bash
 npx supabase gen types typescript --project-id <id> > lib/types.ts
 ```
+
+
 
 ## Resend
 
@@ -93,11 +97,15 @@ Use `onboarding@resend.dev` until a domain is verified. Match `RESEND_FROM_EMAIL
 - `/admin/events` — event builder (consumables + freebie kits)
 - `/admin/venue-requests` — host inquiries
 
+
+
 ## Deploy on Vercel
 
 1. Push this repo and import it in Vercel.
 2. Add the same env vars (use the production site URL for `NEXT_PUBLIC_SITE_URL`).
 3. Deploy. First load of `/` works even before seed data exists.
+
+
 
 ## Project map
 
@@ -109,3 +117,4 @@ lib/                 supabase clients, types, email
 emails/              Resend React templates
 supabase/            SQL migration + seed
 ```
+
