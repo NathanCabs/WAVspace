@@ -1,15 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Upload } from "lucide-react";
 
 import { saveEvent } from "@/app/actions/admin";
+import { CalendarDatePicker } from "@/components/admin/calendar-date-picker";
+import { TimeClockPicker } from "@/components/admin/time-clock-picker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { EVENT_CATEGORIES } from "@/lib/constants";
-import type { ConsumableOption, Event, FreebieKit } from "@/lib/types";
+import type { ConsumableOption, Event, EventCategory, FreebieKit } from "@/lib/types";
 import { kitItems } from "@/lib/format";
 
 type KitDraft = {
@@ -32,7 +42,7 @@ export function EventBuilder({
   kits,
   error,
 }: {
-  event?: Event;
+  event?: Partial<Event>;
   consumables?: ConsumableOption[];
   kits?: FreebieKit[];
   error?: string;
@@ -44,7 +54,9 @@ export function EventBuilder({
           category: item.category,
           extra_price: String(item.extra_price),
         }))
-      : [{ name: "Iced Latte", category: "drink", extra_price: "0" }],
+      : event?.id
+        ? []
+        : [{ name: "Iced Latte", category: "drink", extra_price: "0" }],
   );
   const [kitDrafts, setKitDrafts] = useState<KitDraft[]>(
     kits?.length
@@ -55,22 +67,53 @@ export function EventBuilder({
           items: kitItems(item.items).join("\n"),
           is_default: item.is_default,
         }))
-      : [
-          {
-            name: "Standard Kit",
-            description: "Entry + drink + core merch",
-            price: String(event?.ticket_price ?? 350),
-            items: "Cupholder\nSticker Pack",
-            is_default: true,
-          },
-        ],
+      : event?.id
+        ? []
+        : [
+            {
+              name: "Standard Kit",
+              description: "Entry + drink + core merch",
+              price: String(event?.ticket_price ?? 350),
+              items: "Cupholder\nSticker Pack",
+              is_default: true,
+            },
+          ],
   );
+  const cancelled = Boolean(event?.cancelled_at);
   const [cafeHosted, setCafeHosted] = useState(event?.is_cafe_hosted ?? true);
-  const [published, setPublished] = useState(event?.is_published ?? true);
+  const [published, setPublished] = useState(
+    cancelled ? false : (event?.is_published ?? true),
+  );
+  const [category, setCategory] = useState<EventCategory>(
+    event?.category ?? "cse",
+  );
+  const [customCategory, setCustomCategory] = useState(
+    event?.custom_category ?? "",
+  );
+  const [bannerPreview, setBannerPreview] = useState(event?.banner_url ?? "");
+  const [bannerFileName, setBannerFileName] = useState("");
+
+  useEffect(() => {
+    if (!bannerPreview.startsWith("blob:")) return;
+    return () => URL.revokeObjectURL(bannerPreview);
+  }, [bannerPreview]);
 
   return (
-    <form action={saveEvent} className="grid gap-6">
+    <form action={saveEvent} className="grid gap-8">
       {event?.id ? <input type="hidden" name="id" value={event.id} /> : null}
+      {event?.venue_request_id ? (
+        <input
+          type="hidden"
+          name="venue_request_id"
+          value={event.venue_request_id}
+        />
+      ) : null}
+      <input type="hidden" name="category" value={category} />
+      <input
+        type="hidden"
+        name="custom_category"
+        value={category === "other" ? customCategory : ""}
+      />
       <input type="hidden" name="kits" value={JSON.stringify(kitDrafts.map((kit) => ({
         ...kit,
         price: Number(kit.price || 0),
@@ -85,54 +128,82 @@ export function EventBuilder({
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <section className="glass-card grid gap-3 rounded-3xl p-5">
-        <h2 className="font-heading text-lg">Event details</h2>
+      <section className="glass-card grid gap-5 rounded-3xl p-4 sm:p-6">
+        <div>
+          <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+            Listing
+          </p>
+          <h2 className="mt-1 font-heading text-lg">Event details</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Title, schedule, and how this night shows up on the public calendar.
+          </p>
+        </div>
         <div className="grid gap-1.5">
           <Label htmlFor="title">Title</Label>
-          <Input id="title" name="title" required defaultValue={event?.title} />
+          <Input
+            id="title"
+            name="title"
+            required
+            placeholder="Kkampakz Birthday CSE"
+            defaultValue={event?.title}
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="slug">URL slug</Label>
+          <Input
+            id="slug"
+            name="slug"
+            defaultValue={event?.slug ?? ""}
+            placeholder="kkampakz-birthday-cse"
+          />
+          <p className="text-xs text-muted-foreground">
+            Public link: /events/this-slug. Leave blank to generate from the
+            title. Editing an existing event keeps the current slug unless you
+            change it.
+          </p>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="description">Description</Label>
           <Textarea
             id="description"
             name="description"
-            required
             defaultValue={event?.description ?? ""}
+            placeholder="Optional — polaroid walls, trade tables, what is included…"
+            className="min-h-32 rounded-2xl px-3 py-2.5"
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           <div className="grid gap-1.5">
             <Label htmlFor="event_date">Date</Label>
-            <Input
+            <CalendarDatePicker
               id="event_date"
               name="event_date"
-              type="date"
               required
               defaultValue={event?.event_date}
+              allowValue={event?.event_date}
             />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="start_time">Start</Label>
-            <Input
+            <TimeClockPicker
               id="start_time"
               name="start_time"
-              type="time"
               required
-              defaultValue={event?.start_time?.slice(0, 5)}
+              defaultValue={event?.start_time?.slice(0, 5) ?? "13:00"}
             />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="end_time">End</Label>
-            <Input
+            <TimeClockPicker
               id="end_time"
               name="end_time"
-              type="time"
               required
-              defaultValue={event?.end_time?.slice(0, 5)}
+              align="end"
+              defaultValue={event?.end_time?.slice(0, 5) ?? "18:00"}
             />
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           <div className="grid gap-1.5">
             <Label htmlFor="max_slots">Max slots</Label>
             <Input
@@ -141,6 +212,7 @@ export function EventBuilder({
               type="number"
               min={1}
               required
+              placeholder="30"
               defaultValue={event?.max_slots ?? 30}
             />
           </div>
@@ -152,57 +224,132 @@ export function EventBuilder({
               type="number"
               min={0}
               required
+              placeholder="0"
               defaultValue={event?.ticket_price ?? 0}
             />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="category">Category</Label>
-            <select
-              id="category"
-              name="category"
-              defaultValue={event?.category ?? "cse"}
-              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+            <Select
+              value={category}
+              items={EVENT_CATEGORIES.map((item) => ({
+                value: item.value,
+                label: item.label,
+              }))}
+              onValueChange={(value) => {
+                if (value) setCategory(value as EventCategory);
+              }}
             >
-              {EVENT_CATEGORIES.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="category" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start" alignItemWithTrigger={false}>
+                {EVENT_CATEGORIES.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
+        {category === "other" ? (
+          <div className="grid gap-1.5">
+            <Label htmlFor="custom_category_ui">What kind of event?</Label>
+            <Input
+              id="custom_category_ui"
+              value={customCategory}
+              onChange={(change) => setCustomCategory(change.target.value)}
+              placeholder="Birthday cafe, fansign, listening party…"
+            />
+          </div>
+        ) : null}
         <div className="grid gap-1.5">
-          <Label htmlFor="banner_url">Banner URL</Label>
+          <Label htmlFor="banner_file">Banner image</Label>
+          {bannerPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={bannerPreview}
+              alt=""
+              className="h-36 w-full rounded-2xl object-cover"
+            />
+          ) : null}
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-7 text-sm transition hover:bg-primary/10">
+            <Upload className="mb-2 size-5 text-primary" />
+            {bannerFileName || "Upload JPG, PNG, or WebP · max 5MB"}
+            <input
+              id="banner_file"
+              name="banner_file"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(change) => {
+                const file = change.target.files?.[0];
+                if (!file) {
+                  setBannerFileName("");
+                  setBannerPreview(event?.banner_url ?? "");
+                  return;
+                }
+                setBannerFileName(file.name);
+                setBannerPreview(URL.createObjectURL(file));
+              }}
+            />
+          </label>
+          <Label htmlFor="banner_url" className="mt-1 text-muted-foreground">
+            Or paste a URL
+          </Label>
           <Input
             id="banner_url"
             name="banner_url"
             defaultValue={event?.banner_url ?? ""}
             placeholder="https://..."
+            onChange={(change) => {
+              if (bannerFileName) return;
+              setBannerPreview(change.target.value);
+            }}
           />
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <Checkbox
-            checked={cafeHosted}
-            onCheckedChange={(value) => setCafeHosted(Boolean(value))}
-          />
-          Cafe hosted
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <Checkbox
-            checked={published}
-            onCheckedChange={(value) => setPublished(Boolean(value))}
-          />
-          Published
-        </label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={cafeHosted}
+              onCheckedChange={(value) => setCafeHosted(Boolean(value))}
+            />
+            Cafe hosted
+          </label>
+          {cancelled ? (
+            <p className="text-sm text-destructive">
+              This night is cancelled and stays off the public calendar. It cannot
+              be republished.
+            </p>
+          ) : (
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={published}
+                onCheckedChange={(value) => setPublished(Boolean(value))}
+              />
+              Published
+            </label>
+          )}
+        </div>
       </section>
 
-      <section className="glass-card grid gap-3 rounded-3xl p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg">Consumables</h2>
+      <section className="glass-card grid gap-4 rounded-3xl p-4 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+              Optional
+            </p>
+            <h2 className="mt-1 font-heading text-lg">Consumables</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Optional drinks or food. Leave empty and attendees skip this step.
+            </p>
+          </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
+            className="shrink-0 rounded-full"
             onClick={() =>
               setConsumableDrafts((current) => [
                 ...current,
@@ -213,70 +360,110 @@ export function EventBuilder({
             Add option
           </Button>
         </div>
-        {consumableDrafts.map((item, index) => (
-          <div key={index} className="grid gap-2 sm:grid-cols-[1fr_120px_100px_auto]">
-            <Input
-              placeholder="Iced Latte"
-              value={item.name}
-              onChange={(event) =>
-                setConsumableDrafts((current) =>
-                  current.map((row, rowIndex) =>
-                    rowIndex === index ? { ...row, name: event.target.value } : row,
-                  ),
-                )
-              }
-            />
-            <select
-              value={item.category}
-              onChange={(event) =>
-                setConsumableDrafts((current) =>
-                  current.map((row, rowIndex) =>
-                    rowIndex === index
-                      ? { ...row, category: event.target.value as "drink" | "food" }
-                      : row,
-                  ),
-                )
-              }
-              className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
+        {consumableDrafts.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
+            No drink or food options. Attendees will skip this step at
+            registration.
+          </p>
+        ) : (
+          consumableDrafts.map((item, index) => (
+            <div
+              key={index}
+              className="grid gap-2 rounded-2xl bg-background/45 p-3 ring-1 ring-foreground/8 sm:grid-cols-[1fr_120px_100px_auto] sm:items-end"
             >
-              <option value="drink">Drink</option>
-              <option value="food">Food</option>
-            </select>
-            <Input
-              type="number"
-              min={0}
-              value={item.extra_price}
-              onChange={(event) =>
-                setConsumableDrafts((current) =>
-                  current.map((row, rowIndex) =>
-                    rowIndex === index
-                      ? { ...row, extra_price: event.target.value }
-                      : row,
-                  ),
-                )
-              }
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() =>
-                setConsumableDrafts((current) => current.filter((_, rowIndex) => rowIndex !== index))
-              }
-            >
-              Remove
-            </Button>
-          </div>
-        ))}
+              <div className="grid gap-1.5">
+                <Label>Name</Label>
+                <Input
+                  placeholder="Iced Latte"
+                  value={item.name}
+                  onChange={(event) =>
+                    setConsumableDrafts((current) =>
+                      current.map((row, rowIndex) =>
+                        rowIndex === index
+                          ? { ...row, name: event.target.value }
+                          : row,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label>Type</Label>
+                <Select
+                  value={item.category}
+                  items={[
+                    { value: "drink", label: "Drink" },
+                    { value: "food", label: "Food" },
+                  ]}
+                  onValueChange={(value) => {
+                    if (value !== "drink" && value !== "food") return;
+                    setConsumableDrafts((current) =>
+                      current.map((row, rowIndex) =>
+                        rowIndex === index ? { ...row, category: value } : row,
+                      ),
+                    );
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start" alignItemWithTrigger={false}>
+                    <SelectItem value="drink">Drink</SelectItem>
+                    <SelectItem value="food">Food</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>Extra ₱</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={item.extra_price}
+                  onChange={(event) =>
+                    setConsumableDrafts((current) =>
+                      current.map((row, rowIndex) =>
+                        rowIndex === index
+                          ? { ...row, extra_price: event.target.value }
+                          : row,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setConsumableDrafts((current) =>
+                    current.filter((_, rowIndex) => rowIndex !== index),
+                  )
+                }
+              >
+                Remove
+              </Button>
+            </div>
+          ))
+        )}
       </section>
 
-      <section className="glass-card grid gap-4 rounded-3xl p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg">Freebie kits</h2>
+      <section className="glass-card grid gap-4 rounded-3xl p-4 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+              Optional
+            </p>
+            <h2 className="mt-1 font-heading text-lg">Freebie kits</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Optional merch bundles. Leave empty and attendees skip kit
+              selection.
+            </p>
+          </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
+            className="shrink-0 rounded-full"
             onClick={() =>
               setKitDrafts((current) => [
                 ...current,
@@ -285,7 +472,7 @@ export function EventBuilder({
                   description: "",
                   price: "0",
                   items: "",
-                  is_default: false,
+                  is_default: current.length === 0,
                 },
               ])
             }
@@ -293,87 +480,123 @@ export function EventBuilder({
             Add kit
           </Button>
         </div>
-        {kitDrafts.map((kit, index) => (
-          <div key={index} className="grid gap-2 rounded-2xl border border-white/10 p-3">
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Input
-                placeholder="Standard Kit"
-                value={kit.name}
-                onChange={(event) =>
-                  setKitDrafts((current) =>
-                    current.map((row, rowIndex) =>
-                      rowIndex === index ? { ...row, name: event.target.value } : row,
-                    ),
-                  )
-                }
-              />
-              <Input
-                type="number"
-                min={0}
-                value={kit.price}
-                onChange={(event) =>
-                  setKitDrafts((current) =>
-                    current.map((row, rowIndex) =>
-                      rowIndex === index ? { ...row, price: event.target.value } : row,
-                    ),
-                  )
-                }
-              />
+        {kitDrafts.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
+            No kits. Attendees will skip this step and pay the from-price.
+          </p>
+        ) : (
+          kitDrafts.map((kit, index) => (
+            <div key={index} className="grid gap-3 rounded-2xl bg-background/45 p-4 ring-1 ring-foreground/8">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-1.5">
+                  <Label>Kit name</Label>
+                  <Input
+                    placeholder="Standard Kit"
+                    value={kit.name}
+                    onChange={(event) =>
+                      setKitDrafts((current) =>
+                        current.map((row, rowIndex) =>
+                          rowIndex === index
+                            ? { ...row, name: event.target.value }
+                            : row,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>Price</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="350"
+                    value={kit.price}
+                    onChange={(event) =>
+                      setKitDrafts((current) =>
+                        current.map((row, rowIndex) =>
+                          rowIndex === index
+                            ? { ...row, price: event.target.value }
+                            : row,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>Short description</Label>
+                <Input
+                  placeholder="Entry + drink + core merch"
+                  value={kit.description}
+                  onChange={(event) =>
+                    setKitDrafts((current) =>
+                      current.map((row, rowIndex) =>
+                        rowIndex === index
+                          ? { ...row, description: event.target.value }
+                          : row,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label>Items</Label>
+                <Textarea
+                  placeholder={"One item per line\nCupholder\nPhotocard Set"}
+                  value={kit.items}
+                  onChange={(event) =>
+                    setKitDrafts((current) =>
+                      current.map((row, rowIndex) =>
+                        rowIndex === index
+                          ? { ...row, items: event.target.value }
+                          : row,
+                      ),
+                    )
+                  }
+                  className="min-h-24 rounded-2xl"
+                />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={kit.is_default}
+                    onCheckedChange={(value) =>
+                      setKitDrafts((current) =>
+                        current.map((row, rowIndex) => ({
+                          ...row,
+                          is_default: rowIndex === index ? Boolean(value) : false,
+                        })),
+                      )
+                    }
+                  />
+                  Default kit
+                </label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-fit"
+                  onClick={() =>
+                    setKitDrafts((current) =>
+                      current.filter((_, rowIndex) => rowIndex !== index),
+                    )
+                  }
+                >
+                  Remove kit
+                </Button>
+              </div>
             </div>
-            <Input
-              placeholder="Short description"
-              value={kit.description}
-              onChange={(event) =>
-                setKitDrafts((current) =>
-                  current.map((row, rowIndex) =>
-                    rowIndex === index ? { ...row, description: event.target.value } : row,
-                  ),
-                )
-              }
-            />
-            <Textarea
-              placeholder={"One item per line\nCupholder\nPhotocard Set"}
-              value={kit.items}
-              onChange={(event) =>
-                setKitDrafts((current) =>
-                  current.map((row, rowIndex) =>
-                    rowIndex === index ? { ...row, items: event.target.value } : row,
-                  ),
-                )
-              }
-            />
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={kit.is_default}
-                onCheckedChange={(value) =>
-                  setKitDrafts((current) =>
-                    current.map((row, rowIndex) => ({
-                      ...row,
-                      is_default: rowIndex === index ? Boolean(value) : false,
-                    })),
-                  )
-                }
-              />
-              Default kit
-            </label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="w-fit"
-              onClick={() =>
-                setKitDrafts((current) => current.filter((_, rowIndex) => rowIndex !== index))
-              }
-            >
-              Remove kit
-            </Button>
-          </div>
-        ))}
+          ))
+        )}
       </section>
 
-      <Button type="submit" className="w-fit rounded-full">
-        Save event
-      </Button>
+      <div className="sticky bottom-4 z-20 flex justify-end">
+        <Button type="submit" className="rounded-full px-6 shadow-lg shadow-primary/20">
+          Save event
+        </Button>
+      </div>
     </form>
   );
 }
+
+

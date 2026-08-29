@@ -1,5 +1,7 @@
 import { loginAdmin } from "@/app/actions/admin";
+import { AuthPageChrome } from "@/components/auth-page-chrome";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { siteConfig } from "@/lib/config/site-config";
@@ -12,6 +14,7 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
+    <AuthPageChrome>
     <div className="flex min-h-screen items-center justify-center px-4">
       <form action={loginAdmin} className="glass-card w-full max-w-sm rounded-3xl p-8">
         <p className="text-xs uppercase tracking-[0.22em] text-primary">Staff</p>
@@ -32,8 +35,19 @@ export default async function LoginPage({
           <Button type="submit" className="mt-2 rounded-full">
             Sign in
           </Button>
+          <ButtonLink
+            href="/login/forgot"
+            variant="ghost"
+            className="rounded-full"
+          >
+            Forgot password?
+          </ButtonLink>
+          <ButtonLink href="/" variant="ghost" className="rounded-full">
+            Back to site
+          </ButtonLink>
         </div>
       </form>
     </div>
+    </AuthPageChrome>
   );
 }

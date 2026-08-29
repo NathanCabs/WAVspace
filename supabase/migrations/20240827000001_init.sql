@@ -40,6 +40,7 @@ create table public.cafe_settings (
 
 create table public.events (
   id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
   title text not null,
   description text,
   event_date date not null,

@@ -1,8 +1,7 @@
-import { deleteEvent } from "@/app/actions/admin";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { EventsBoard } from "@/components/admin/events-board";
 import { ButtonLink } from "@/components/ui/button-link";
-import { formatEventDate, formatPeso } from "@/lib/format";
+import { localToday } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -14,61 +13,37 @@ export default async function AdminEventsPage({
 }) {
   const { error } = await searchParams;
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("event_listings")
-    .select("*")
-    .order("event_date", { ascending: true });
+  const [{ data }, { data: approved }] = await Promise.all([
+    supabase
+      .from("event_listings")
+      .select("*")
+      .order("event_date", { ascending: true }),
+    supabase.from("registrations").select("event_id").eq("status", "APPROVED"),
+  ]);
+
+  const attendeeCounts: Record<string, number> = {};
+  for (const row of approved ?? []) {
+    attendeeCounts[row.event_id] = (attendeeCounts[row.event_id] ?? 0) + 1;
+  }
+
+  const today = localToday();
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-3xl font-semibold">Events</h1>
-          <p className="text-sm text-muted-foreground">
-            Publish nights, set slots, and attach kits.
-          </p>
-        </div>
-        <ButtonLink href="/admin/events/new" className="rounded-full">
+      <AdminPageHeader
+        title="Events"
+        description="Publish nights, review approved guests, and archive cancelled dates without the clutter."
+        error={error}
+      >
+        <ButtonLink href="/admin/events/new" className="rounded-full px-5">
           New event
         </ButtonLink>
-      </div>
-      {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
-      <div className="mt-6 grid gap-3">
-        {(data ?? []).map((event) => (
-          <div
-            key={event.id}
-            className="glass-card flex flex-wrap items-center justify-between gap-4 rounded-3xl p-4"
-          >
-            <div>
-              <div className="flex flex-wrap gap-2">
-                <h2 className="font-heading text-lg">{event.title}</h2>
-                <Badge variant={event.is_published ? "default" : "secondary"}>
-                  {event.is_published ? "Published" : "Draft"}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {formatEventDate(event.event_date)} · {event.remaining_slots}/
-                {event.max_slots} open · from {formatPeso(event.ticket_price)}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <ButtonLink
-                href={`/admin/events/${event.id}`}
-                variant="outline"
-                size="sm"
-              >
-                Edit
-              </ButtonLink>
-              <form action={deleteEvent}>
-                <input type="hidden" name="id" value={event.id} />
-                <Button type="submit" size="sm" variant="destructive">
-                  Delete
-                </Button>
-              </form>
-            </div>
-          </div>
-        ))}
-      </div>
+      </AdminPageHeader>
+      <EventsBoard
+        events={data ?? []}
+        attendeeCounts={attendeeCounts}
+        today={today}
+      />
     </div>
   );
 }

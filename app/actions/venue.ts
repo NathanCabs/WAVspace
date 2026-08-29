@@ -55,6 +55,9 @@ export async function submitVenueRequest(
     email: parsed.data.contact_email,
     organizerName: parsed.data.organizer_name,
     proposedDate: parsed.data.proposed_date,
+    expectedAttendance: parsed.data.expected_attendance,
+    eventDescription: parsed.data.event_description,
+    contactPhone: parsed.data.contact_phone,
   });
 
   return {

@@ -57,11 +57,11 @@ export function BentoGrid({ events }: { events: EventListing[] }) {
           open slots across upcoming events
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-xs">
             <Coffee className="size-3.5 text-primary" />
             {cafeHosted} cafe-hosted
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-xs">
             <Mic2 className="size-3.5 text-primary" />
             {events.length - cafeHosted} fan-hosted
           </span>

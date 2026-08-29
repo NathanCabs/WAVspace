@@ -29,12 +29,13 @@ values (
 on conflict (id) do nothing;
 
 insert into public.events (
-  id, title, description, event_date, start_time, end_time, banner_url,
+  id, slug, title, description, event_date, start_time, end_time, banner_url,
   max_slots, ticket_price, is_cafe_hosted, category, is_published
 )
 values
   (
     'a1111111-1111-4111-8111-111111111111',
+    'kkampakz-birthday-cse',
     'Kkampakz Birthday CSE',
     'A fan-hosted birthday cupsleeve for Nakyoung and Sohyun, with Polaroid walls, trade tables, and a WAV Cafe drink included in every kit. Bring photocards, stay for the playlist, leave with a cupholder.',
     '2026-10-13',
@@ -49,6 +50,7 @@ values
   ),
   (
     'a2222222-2222-4222-8222-222222222222',
+    'late-light-acoustic-night',
     'Late Light Acoustic Night',
     'A cafe-hosted evening of original songs, warm lamps, and slow bars. Limited seated tables plus standing room along the counter.',
     '2026-09-13',
@@ -63,6 +65,7 @@ values
   ),
   (
     'a3333333-3333-4333-8333-333333333333',
+    'latte-art-lab',
     'Latte Art Lab',
     'A hands-on workshop with WAV Cafe baristas. You will pull, pour, and take home a tasting flight plus a small kit of practice cups.',
     '2026-10-04',
@@ -75,6 +78,28 @@ values
     'workshop',
     true
   )
+on conflict (id) do nothing;
+
+insert into public.events (
+  id, slug, title, description, event_date, start_time, end_time, banner_url,
+  max_slots, ticket_price, is_cafe_hosted, category, custom_category, is_published
+)
+values (
+  'a4444444-4444-4444-8444-444444444444',
+  'july-vinyl-swap',
+  'July Vinyl Swap',
+  'A quiet afternoon of crate digging, sticker trades, and pour-overs. This night has already wrapped.',
+  '2026-07-19',
+  '14:00',
+  '18:00',
+  'https://images.unsplash.com/photo-1483412036650-ba5b409012c0?auto=format&fit=crop&w=1600&q=80',
+  24,
+  150,
+  true,
+  'other',
+  'Swap',
+  true
+)
 on conflict (id) do nothing;
 
 insert into public.consumable_options (id, event_id, name, category, extra_price, sort_order)

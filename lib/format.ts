@@ -22,9 +22,19 @@ export function formatPeso(amount: number | string | null | undefined) {
 }
 
 export function formatEventDate(date: string) {
+  const parts = formatEventDayParts(date);
+  return `${parts.weekday}, ${parts.month} ${parts.day}, ${parts.year}`;
+}
+
+export function formatEventDayParts(date: string) {
   const [year, month, day] = date.split("-").map(Number);
   const utc = new Date(Date.UTC(year, (month || 1) - 1, day || 1));
-  return `${WEEKDAYS[utc.getUTCDay()]}, ${MONTHS[utc.getUTCMonth()]} ${utc.getUTCDate()}, ${utc.getUTCFullYear()}`;
+  return {
+    weekday: WEEKDAYS[utc.getUTCDay()],
+    month: MONTHS[utc.getUTCMonth()],
+    day: utc.getUTCDate(),
+    year: utc.getUTCFullYear(),
+  };
 }
 
 export function formatTime(time: string) {

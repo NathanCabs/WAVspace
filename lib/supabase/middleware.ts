@@ -47,6 +47,16 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
+  if (request.nextUrl.pathname === "/reset-password" && !user) {
+    const login = request.nextUrl.clone();
+    login.pathname = "/login";
+    login.searchParams.set(
+      "error",
+      "This reset link has expired. Request a new one.",
+    );
+    return NextResponse.redirect(login);
+  }
+
   if (request.nextUrl.pathname === "/login" && user) {
     const admin = request.nextUrl.clone();
     admin.pathname = "/admin";

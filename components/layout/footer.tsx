@@ -10,8 +10,8 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-white/5">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+    <footer className="mt-12 border-t border-border sm:mt-16">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-6 sm:py-10">
         <div>
           <p className="font-heading text-2xl font-bold tracking-tight">
             <span className="text-primary">{siteConfig.product.wordmark[0]}</span>

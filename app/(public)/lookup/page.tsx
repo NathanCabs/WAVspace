@@ -1,4 +1,5 @@
 import { LookupForm } from "@/components/lookup/lookup-form";
+import { PublicPageHeader } from "@/components/layout/public-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -10,16 +11,13 @@ export default async function LookupPage({
   const { q } = await searchParams;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-      <p className="text-xs uppercase tracking-[0.22em] text-primary">Status</p>
-      <h1 className="font-heading text-4xl font-semibold">Find your registration</h1>
-      <p className="mt-3 max-w-xl text-muted-foreground">
-        Enter the email you used at checkout or your WAV-XXXX code to see if the
-        cafe has approved your receipt.
-      </p>
-      <div className="mt-8">
-        <LookupForm defaultQuery={q} />
-      </div>
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+      <PublicPageHeader
+        eyebrow="Status"
+        title="Find your registration"
+        description="Enter the email you used at checkout or your WAV-XXXX code to see if the cafe has approved your receipt."
+      />
+      <LookupForm defaultQuery={q} />
     </div>
   );
 }

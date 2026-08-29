@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@react-email/render", "resend"],
   experimental: {
     serverActions: {
       bodySizeLimit: "6mb",

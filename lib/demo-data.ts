@@ -89,6 +89,7 @@ const CSE_KITS: FreebieKit[] = [
 export const DEMO_EVENTS: EventListing[] = [
   {
     id: "a1111111-1111-4111-8111-111111111111",
+    slug: "kkampakz-birthday-cse",
     title: "Kkampakz Birthday CSE",
     description:
       "A fan-hosted birthday cupsleeve for Nakyoung and Sohyun, with Polaroid walls, trade tables, and a WAV Cafe drink included in every kit.",
@@ -100,13 +101,18 @@ export const DEMO_EVENTS: EventListing[] = [
     ticket_price: 350,
     is_cafe_hosted: false,
     category: "cse",
+    custom_category: null,
     is_published: true,
+    cancelled_at: null,
+    cancellation_reason: null,
+    venue_request_id: null,
     created_at: "2026-08-01T00:00:00.000Z",
     updated_at: "2026-08-01T00:00:00.000Z",
     remaining_slots: 40,
   },
   {
     id: "a2222222-2222-4222-8222-222222222222",
+    slug: "late-light-acoustic-night",
     title: "Late Light Acoustic Night",
     description:
       "A cafe-hosted evening of original songs, warm lamps, and slow bars.",
@@ -119,13 +125,18 @@ export const DEMO_EVENTS: EventListing[] = [
     ticket_price: 200,
     is_cafe_hosted: true,
     category: "acoustic",
+    custom_category: null,
     is_published: true,
+    cancelled_at: null,
+    cancellation_reason: null,
+    venue_request_id: null,
     created_at: "2026-08-01T00:00:00.000Z",
     updated_at: "2026-08-01T00:00:00.000Z",
     remaining_slots: 18,
   },
   {
     id: "a3333333-3333-4333-8333-333333333333",
+    slug: "latte-art-lab",
     title: "Latte Art Lab",
     description:
       "A hands-on workshop with WAV Cafe baristas. Pull, pour, and take home a tasting flight.",
@@ -138,10 +149,38 @@ export const DEMO_EVENTS: EventListing[] = [
     ticket_price: 500,
     is_cafe_hosted: true,
     category: "workshop",
+    custom_category: null,
     is_published: true,
+    cancelled_at: null,
+    cancellation_reason: null,
+    venue_request_id: null,
     created_at: "2026-08-01T00:00:00.000Z",
     updated_at: "2026-08-01T00:00:00.000Z",
     remaining_slots: 9,
+  },
+  {
+    id: "a4444444-4444-4444-8444-444444444444",
+    slug: "july-vinyl-swap",
+    title: "July Vinyl Swap",
+    description:
+      "A quiet afternoon of crate digging, sticker trades, and pour-overs. This night has already wrapped.",
+    event_date: "2026-07-19",
+    start_time: "14:00:00",
+    end_time: "18:00:00",
+    banner_url:
+      "https://images.unsplash.com/photo-1483412036650-ba5b409012c0?auto=format&fit=crop&w=1600&q=80",
+    max_slots: 24,
+    ticket_price: 150,
+    is_cafe_hosted: true,
+    category: "other",
+    custom_category: "Swap",
+    is_published: true,
+    cancelled_at: null,
+    cancellation_reason: null,
+    venue_request_id: null,
+    created_at: "2026-07-01T00:00:00.000Z",
+    updated_at: "2026-07-01T00:00:00.000Z",
+    remaining_slots: 0,
   },
 ];
 
@@ -239,5 +278,20 @@ export const DEMO_EVENT_DETAILS: EventDetail[] = [
         sort_order: 1,
       },
     ],
+  },
+  {
+    ...DEMO_EVENTS[3],
+    consumable_options: [
+      {
+        id: "b4444444-4444-4444-8444-000000000001",
+        event_id: DEMO_EVENTS[3].id,
+        name: "House Pour-over",
+        category: "drink",
+        extra_price: 0,
+        sort_order: 1,
+        is_active: true,
+      },
+    ],
+    freebie_kits: [],
   },
 ];

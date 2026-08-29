@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 
 import { submitRegistration, type RegisterState } from "@/app/actions/register";
@@ -12,7 +12,8 @@ import { formatPeso, kitItems } from "@/lib/format";
 import type { CafeSettings, EventDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const steps = ["Details", "Drink", "Kit", "Pay"];
+const stepLabels = ["Details", "Drink", "Kit", "Pay"] as const;
+type StepLabel = (typeof stepLabels)[number];
 
 const initial: RegisterState = { ok: false, message: "" };
 
@@ -36,17 +37,30 @@ export function RegistrationWizard({
   const [fileName, setFileName] = useState("");
   const [state, action, pending] = useActionState(submitRegistration, initial);
 
+  const hasDrinks = event.consumable_options.length > 0;
+  const hasKits = event.freebie_kits.length > 0;
+  const steps = stepLabels.filter((label) => {
+    if (label === "Drink") return hasDrinks;
+    if (label === "Kit") return hasKits;
+    return true;
+  });
+  const current = steps[step] as StepLabel;
+
   const consumable = event.consumable_options.find((item) => item.id === consumableId);
   const kit = event.freebie_kits.find((item) => item.id === kitId);
-  const total = Number(kit?.price ?? 0) + Number(consumable?.extra_price ?? 0);
+  const total =
+    Number(kit?.price ?? (hasKits ? 0 : event.ticket_price)) +
+    Number(consumable?.extra_price ?? 0);
   const soldOut = (event.remaining_slots ?? 0) <= 0;
 
-  const canContinue = useMemo(() => {
-    if (step === 0) return name.trim().length >= 2 && email.includes("@");
-    if (step === 1) return event.consumable_options.length === 0 || Boolean(consumableId);
-    if (step === 2) return Boolean(kitId);
-    return Boolean(fileName);
-  }, [step, name, email, consumableId, kitId, fileName, event.consumable_options.length]);
+  const canContinue =
+    current === "Details"
+      ? name.trim().length >= 2 && email.includes("@")
+      : current === "Drink"
+        ? Boolean(consumableId)
+        : current === "Kit"
+          ? Boolean(kitId)
+          : Boolean(fileName);
 
   if (soldOut) {
     return (
@@ -58,7 +72,7 @@ export function RegistrationWizard({
   }
 
   return (
-    <form action={action} className="glass-card rounded-3xl p-5 sm:p-7">
+    <form action={action} className="glass-card min-w-0 rounded-3xl p-4 sm:p-7">
       <input type="hidden" name="event_id" value={event.id} />
       <input type="hidden" name="attendee_name" value={name} />
       <input type="hidden" name="email" value={email} />
@@ -66,25 +80,34 @@ export function RegistrationWizard({
       <input type="hidden" name="consumable_id" value={consumableId} />
       <input type="hidden" name="kit_id" value={kitId} />
 
-      <div className="mb-6 grid grid-cols-4 gap-2">
+      <div
+        className={cn(
+          "mb-6 grid gap-2",
+          steps.length === 4
+            ? "grid-cols-4"
+            : steps.length === 3
+              ? "grid-cols-3"
+              : "grid-cols-2",
+        )}
+      >
         {steps.map((label, index) => (
           <div key={label} className="text-center">
             <div
               className={cn(
                 "mx-auto mb-1 flex size-7 items-center justify-center rounded-full text-xs",
-                index <= step ? "bg-primary text-primary-foreground" : "bg-white/10",
+                index <= step ? "bg-primary text-primary-foreground" : "bg-muted",
               )}
             >
               {index < step ? <Check className="size-3.5" /> : index + 1}
             </div>
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground sm:text-[11px]">
               {label}
             </p>
           </div>
         ))}
       </div>
 
-      {step === 0 ? (
+      {current === "Details" ? (
         <div className="grid gap-3">
           <div className="grid gap-1.5">
             <Label htmlFor="attendee_name_ui">Attendee name</Label>
@@ -119,7 +142,7 @@ export function RegistrationWizard({
         </div>
       ) : null}
 
-      {step === 1 ? (
+      {current === "Drink" ? (
         <RadioGroup
           value={consumableId}
           onValueChange={(value) => {
@@ -130,7 +153,7 @@ export function RegistrationWizard({
             <label
               key={option.id}
               className={cn(
-                "flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3",
+                "flex cursor-pointer items-center justify-between rounded-2xl border border-border bg-muted/40 p-3",
                 consumableId === option.id && "border-primary/50 bg-primary/10",
               )}
             >
@@ -153,7 +176,7 @@ export function RegistrationWizard({
         </RadioGroup>
       ) : null}
 
-      {step === 2 ? (
+      {current === "Kit" ? (
         <RadioGroup
           value={kitId}
           onValueChange={(value) => {
@@ -164,7 +187,7 @@ export function RegistrationWizard({
             <label
               key={option.id}
               className={cn(
-                "flex cursor-pointer flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 p-3",
+                "flex cursor-pointer flex-col gap-1 rounded-2xl border border-border bg-muted/40 p-3",
                 kitId === option.id && "border-primary/50 bg-primary/10",
               )}
             >
@@ -178,7 +201,7 @@ export function RegistrationWizard({
               <span className="pl-7 text-xs text-muted-foreground">
                 {option.description}
               </span>
-              <span className="pl-7 text-xs text-cream/80">
+              <span className="pl-7 text-xs text-muted-foreground">
                 {kitItems(option.items).join(" · ")}
               </span>
             </label>
@@ -186,13 +209,15 @@ export function RegistrationWizard({
         </RadioGroup>
       ) : null}
 
-      {step === 3 ? (
+      {current === "Pay" ? (
         <div className="grid gap-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
+          <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm">
             <p className="font-medium">{name}</p>
             <p className="text-muted-foreground">{email}</p>
             <p className="mt-3">
-              {consumable?.name} · {kit?.name}
+              {[consumable?.name, kit?.name ?? (hasKits ? undefined : "No kit")]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
             <p className="mt-1 font-heading text-2xl text-primary">
               {formatPeso(total)}
@@ -249,7 +274,7 @@ export function RegistrationWizard({
           <ChevronLeft />
           Back
         </Button>
-        {step < 3 ? (
+        {step < steps.length - 1 ? (
           <Button
             type="button"
             className="rounded-full"
@@ -279,7 +304,7 @@ function PaymentCard({
   qr: string | null;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+    <div className="rounded-2xl border border-border bg-muted/40 p-3">
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
       {qr ? (
         // eslint-disable-next-line @next/next/no-img-element

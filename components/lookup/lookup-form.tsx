@@ -16,7 +16,7 @@ export function LookupForm({ defaultQuery }: { defaultQuery?: string }) {
 
   return (
     <div>
-      <form action={action} className="glass-card flex flex-col gap-3 rounded-3xl p-5 sm:flex-row sm:items-end">
+      <form action={action} className="glass-card flex flex-col gap-3 rounded-3xl p-4 sm:flex-row sm:items-end sm:p-5">
         <div className="grid flex-1 gap-1.5">
           <label htmlFor="query" className="text-sm">
             Email or reference code
@@ -47,7 +47,7 @@ export function LookupForm({ defaultQuery }: { defaultQuery?: string }) {
                   {result.event_title} · {formatEventDate(result.event_date)}
                 </p>
                 <p className="mt-1 text-sm">
-                  {result.attendee_name} · {result.kit_name} ·{" "}
+                  {result.attendee_name} · {result.kit_name ?? "No kit"} ·{" "}
                   {formatPeso(result.total_amount)}
                 </p>
               </div>

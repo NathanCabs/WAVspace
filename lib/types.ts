@@ -62,6 +62,7 @@ export type Database = {
       events: {
         Row: {
           id: string;
+          slug: string;
           title: string;
           description: string | null;
           event_date: string;
@@ -72,12 +73,17 @@ export type Database = {
           ticket_price: number;
           is_cafe_hosted: boolean;
           category: Database["public"]["Enums"]["event_category"];
+          custom_category: string | null;
           is_published: boolean;
+          cancelled_at: string | null;
+          cancellation_reason: string | null;
+          venue_request_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
+          slug: string;
           title: string;
           description?: string | null;
           event_date: string;
@@ -88,12 +94,24 @@ export type Database = {
           ticket_price?: number;
           is_cafe_hosted?: boolean;
           category?: Database["public"]["Enums"]["event_category"];
+          custom_category?: string | null;
           is_published?: boolean;
+          cancelled_at?: string | null;
+          cancellation_reason?: string | null;
+          venue_request_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "events_venue_request_id_fkey";
+            columns: ["venue_request_id"];
+            isOneToOne: true;
+            referencedRelation: "venue_requests";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       consumable_options: {
         Row: {
@@ -161,7 +179,7 @@ export type Database = {
         Row: {
           id: string;
           event_id: string;
-          kit_id: string;
+          kit_id: string | null;
           attendee_name: string;
           email: string;
           phone: string | null;
@@ -176,7 +194,7 @@ export type Database = {
         Insert: {
           id?: string;
           event_id: string;
-          kit_id: string;
+          kit_id?: string | null;
           attendee_name: string;
           email: string;
           phone?: string | null;
@@ -275,7 +293,7 @@ export type Database = {
       create_registration: {
         Args: {
           p_event_id: string;
-          p_kit_id: string;
+          p_kit_id: string | null;
           p_attendee_name: string;
           p_email: string;
           p_phone: string | null;
@@ -289,13 +307,17 @@ export type Database = {
         Args: { p_query: string };
         Returns: Database["public"]["CompositeTypes"]["lookup_result"][];
       };
+      reset_operational_data: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
     };
     Enums: {
       user_role: "admin";
       event_category: "cse" | "acoustic" | "workshop" | "other";
       consumable_category: "drink" | "food";
       registration_status: "PENDING" | "APPROVED" | "REJECTED";
-      venue_request_status: "PENDING" | "APPROVED" | "DECLINED";
+      venue_request_status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED";
     };
     CompositeTypes: {
       lookup_result: {
@@ -308,7 +330,7 @@ export type Database = {
         created_at: string;
         event_title: string;
         event_date: string;
-        kit_name: string;
+        kit_name: string | null;
       };
     };
   };

@@ -13,6 +13,7 @@ export const siteConfig = {
     title: "WAV Space",
     wordmark: ["WAV", "space"] as const,
   },
+  timezone: "Asia/Manila",
   cafe: {
     name: "WAV Cafe",
     tagline: "Pour-over, playlists, and packed cupsleeve nights.",
@@ -21,18 +22,18 @@ export const siteConfig = {
     logoUrl: null as string | null,
   },
   theme: {
-    primary: "oklch(0.82 0.12 78)",
-    primaryForeground: "oklch(0.18 0.03 55)",
-    background: "oklch(0.145 0.02 55)",
-    gold: "oklch(0.82 0.12 78)",
-    cream: "oklch(0.95 0.02 90)",
+    primary: "oklch(0.78 0.09 75)",
+    primaryForeground: "oklch(0.18 0.03 50)",
+    background: "oklch(0.16 0.015 50)",
+    gold: "oklch(0.78 0.09 75)",
+    cream: "oklch(0.94 0.015 85)",
     /** Hex fallbacks for emails, favicon, and OG images (no CSS variables). */
     hex: {
-      primary: "#f5c578",
-      background: "#1a1410",
-      cream: "#f6efe4",
-      muted: "#d8cbb8",
-      card: "#241c16",
+      primary: "#d4b07a",
+      background: "#1c1814",
+      cream: "#f3ece1",
+      muted: "#cbbba8",
+      card: "#27211c",
     },
   },
   payments: {
@@ -57,13 +58,5 @@ export const siteConfig = {
 } as const;
 
 export const themeStyle = {
-  "--primary": siteConfig.theme.primary,
-  "--primary-foreground": siteConfig.theme.primaryForeground,
-  "--ring": siteConfig.theme.primary,
   "--gold": siteConfig.theme.gold,
-  "--background": siteConfig.theme.background,
-  "--cream": siteConfig.theme.cream,
-  "--sidebar-primary": siteConfig.theme.primary,
-  "--sidebar-ring": siteConfig.theme.primary,
-  "--chart-1": siteConfig.theme.primary,
 } as CSSProperties;
